@@ -2,37 +2,60 @@ import { useEffect, useRef } from "react";
 import { useMusic } from "../hooks/useMusic";
 
 export const MusicPlayer = () => {
-  const { currentTrack, formatTime, currentTime, duration, setDuration } = useMusic();
+  const {
+    currentTrack,
+    formatTime,
+    currentTime,
+    setCurrentTime,
+    duration,
+    setDuration,
+    nextTrack,
+    prevTrack,
+    isPlaying,
+    pause,
+    play,
+  } = useMusic();
   const audioRef = useRef(null);
 
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+     if (isPlaying){
+       audio.play().catch((err) => console.error(err))
+     } else {
+       audio.pause()
+     }
+  },[isPlaying])
 
   useEffect(() => {
-     const audio = audioRef.current;
-     if (!audio) return;
+    const audio = audioRef.current;
+    if (!audio) return;
 
-     const handleLoadedMetaData = () => {
-       setDuration(audio.duration)
-     }
-     const handleTimeUpdate = () => {
+    const handleLoadedMetaData = () => {
+      setDuration(audio.duration);
+    };
+    const handleTimeUpdate = () => {};
+    const handleEnded = () => {};
 
-     }
-     const handleEnded = () => {
+    audio.addEventListener("loadedmetadata", handleLoadedMetaData);
 
-     };
-
-
-     
-  },[])
+    return () => {
+      audio.removeEventListener("loadedmetadata", handleLoadedMetaData);
+    };
+  }, [setDuration, setCurrentTime, currentTrack]);
 
   return (
     <div className="music-player">
-      <audio ref={audioRef} preload="metadata" crossOrigin="anonymous" />
-
+      <audio
+        ref={audioRef}
+        src={currentTrack.url}
+        preload="metadata"
+        crossOrigin="anonymous"
+      />
       <div className="track-info">
         <h3 className="track-title">{currentTrack.title}</h3>
         <p className="track-artist">{currentTrack.artist}</p>
       </div>
-
       <div className="progress-container">
         <span className="time">{formatTime(currentTime)}</span>
         <input
@@ -44,6 +67,20 @@ export const MusicPlayer = () => {
           className="progress-bar"
         />
         <span className="time">{formatTime(duration)}</span>
+      </div>
+      <div className="controls">
+        <button className="control-btn" onClick={prevTrack}>
+          ⏮
+        </button>
+        <button
+          className="control-btn play-btn"
+          onClick={() => (isPlaying ? pause() : play())}
+        >
+          {isPlaying ? "⏸" : "▶"}
+        </button>
+        <button className="control-btn" onClick={nextTrack}>
+          ⏭
+        </button>
       </div>
     </div>
   );
